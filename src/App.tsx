@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { Navbar, Hero, Section, CodePane } from './shared/components';
-import { BuilderCanvas } from './features/canvas/BuilderCanvas';
+import { SimpleArchitectureDiagram } from './features/canvas/SimpleArchitectureDiagram';
 import { CodePlayground } from './features/exercises/CodePlayground';
 import { ValueObjectSlides } from './features/animations/ValueObjectSlides';
 import { EntitySlides } from './features/animations/EntitySlides';
@@ -195,13 +195,13 @@ function App() {
         <RepositorySlides />
       </Section>
 
-      {/* Builder */}
+      {/* Architecture Diagram */}
       <Section
-        id="builder"
-        title="Visual Domain Builder"
-        subtitle="Build your domain model with drag-and-drop"
+        id="architecture"
+        title="Clean Architecture: How It All Fits Together"
+        subtitle="The 5 core building blocks we've learned"
       >
-        <BuilderCanvas />
+        <SimpleArchitectureDiagram />
       </Section>
 
       {/* Generated Code */}

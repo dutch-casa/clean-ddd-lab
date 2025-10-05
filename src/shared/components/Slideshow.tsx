@@ -9,7 +9,7 @@ export type Slide = {
 
 type SlideshowProps = {
   slides: Slide[];
-  title: string;
+  title?: string;
 };
 
 export function Slideshow({ slides, title }: SlideshowProps) {

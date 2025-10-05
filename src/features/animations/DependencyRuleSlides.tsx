@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Slideshow } from '@/shared/components';
 
 /**
@@ -24,18 +23,18 @@ export function DependencyRuleSlides() {
                 transition={{ delay: 0.2 }}
               >
                 <div className="bg-blue-100 border-2 border-blue-400 rounded-lg p-4 text-center">
-                  <p className="font-semibold">UI / Presentation</p>
-                  <p className="text-xs text-gray-600">React, HTML, Controllers</p>
+                  <p className="font-semibold">UI / Controllers</p>
+                  <p className="text-xs text-gray-600">React, ASP.NET Controllers</p>
                 </div>
               </motion.div>
 
               <motion.div
-                className="text-2xl"
+                className="text-2xl text-red-600"
                 initial={{ opacity: 0, scale: 0 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.4 }}
               >
-                ↓
+                ↓ depends on
               </motion.div>
 
               <motion.div
@@ -46,17 +45,19 @@ export function DependencyRuleSlides() {
               >
                 <div className="bg-green-100 border-2 border-green-400 rounded-lg p-4 text-center">
                   <p className="font-semibold">Business Logic</p>
-                  <p className="text-xs text-gray-600">Services, Domain Models</p>
+                  <p className="text-xs text-gray-600">
+                    <code className="bg-white px-1 rounded">using EntityFramework;</code>
+                  </p>
                 </div>
               </motion.div>
 
               <motion.div
-                className="text-2xl"
+                className="text-2xl text-red-600"
                 initial={{ opacity: 0, scale: 0 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.7 }}
               >
-                ↓
+                ↓ depends on
               </motion.div>
 
               <motion.div
@@ -66,8 +67,10 @@ export function DependencyRuleSlides() {
                 transition={{ delay: 0.8 }}
               >
                 <div className="bg-purple-100 border-2 border-purple-400 rounded-lg p-4 text-center">
-                  <p className="font-semibold">Database</p>
-                  <p className="text-xs text-gray-600">PostgreSQL, Entity Framework</p>
+                  <p className="font-semibold">Database (EF DbContext)</p>
+                  <p className="text-xs text-gray-600">
+                    <code className="bg-white px-1 rounded">class User : DbContext</code>
+                  </p>
                 </div>
               </motion.div>
             </div>
@@ -197,22 +200,38 @@ export function DependencyRuleSlides() {
                   Application
                 </motion.div>
 
-                {/* Arrows pointing inward */}
+                {/* Arrows pointing INWARD */}
                 <motion.div
-                  className="absolute top-1/2 right-8 text-3xl text-red-600"
+                  className="absolute top-1/2 right-8 text-3xl text-green-600 font-bold"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 1.6 }}
                 >
-                  →
+                  ←
                 </motion.div>
                 <motion.div
-                  className="absolute bottom-12 left-1/2 -translate-x-1/2 text-3xl text-red-600"
+                  className="absolute bottom-12 left-1/2 -translate-x-1/2 text-3xl text-green-600 font-bold"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 1.8 }}
                 >
-                  ↑
+                  ↓
+                </motion.div>
+                <motion.div
+                  className="absolute top-12 left-1/2 -translate-x-1/2 text-3xl text-green-600 font-bold"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 2.0 }}
+                >
+                  ↓
+                </motion.div>
+                <motion.div
+                  className="absolute top-1/2 left-8 text-3xl text-green-600 font-bold"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 2.2 }}
+                >
+                  →
                 </motion.div>
               </motion.div>
             </div>

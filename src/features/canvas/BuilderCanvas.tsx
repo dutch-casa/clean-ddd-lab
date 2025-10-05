@@ -1,8 +1,8 @@
 import { useCallback, useState, useMemo } from 'react';
 import ReactFlow, {
-  Node,
-  Edge,
-  Connection,
+  type Node,
+  type Edge,
+  type Connection,
   addEdge,
   useNodesState,
   useEdgesState,
@@ -19,7 +19,7 @@ import { AggregateNode } from './nodes/AggregateNode';
 import { RepositoryNode } from './nodes/RepositoryNode';
 import { UseCaseNode } from './nodes/UseCaseNode';
 import { generateAllCode } from '../codegen/emitter';
-import { DomainGraph } from '@/shared/types';
+import type { DomainGraph } from '@/shared/types/domain';
 import { CodePane } from '@/shared/components';
 
 const nodeTypes = {
@@ -136,7 +136,10 @@ export function BuilderCanvas() {
       .map((n) => ({
         id: n.id,
         name: n.data.name || 'Unnamed',
-        primitives: n.data.primitives || [],
+        fields: n.data.primitives?.map((p: string) => {
+          const [name, type] = p.split(':').map(s => s.trim());
+          return { name, type: type as any };
+        }) || [],
       }));
 
     const entities = nodes
@@ -144,8 +147,8 @@ export function BuilderCanvas() {
       .map((n) => ({
         id: n.id,
         name: n.data.name || 'Unnamed',
+        idType: 'Guid' as const,
         fields: n.data.fields || [],
-        methods: n.data.methods || [],
       }));
 
     const aggregates = nodes
@@ -154,6 +157,8 @@ export function BuilderCanvas() {
         id: n.id,
         name: n.data.name || 'Unnamed',
         rootEntityId: n.data.rootEntityId || '',
+        entityIds: [],
+        invariants: [],
       }));
 
     const repositories = nodes
@@ -161,7 +166,7 @@ export function BuilderCanvas() {
       .map((n) => ({
         id: n.id,
         name: n.data.name || 'Unnamed',
-        aggregateId: n.data.aggregateId || '',
+        methods: [],
       }));
 
     const useCases = nodes
@@ -169,11 +174,24 @@ export function BuilderCanvas() {
       .map((n) => ({
         id: n.id,
         name: n.data.name || 'Unnamed',
+        input: { name: 'Request', fields: [] },
+        output: { name: 'Response', fields: [] },
         repoIds: n.data.repoIds || [],
+        reads: [],
         writes: n.data.writes || [],
       }));
 
-    return { valueObjects, entities, aggregates, repositories, useCases };
+    return {
+      valueObjects,
+      entities,
+      aggregates,
+      repositories,
+      useCases,
+      meta: {
+        name: 'User-built Architecture',
+        version: 1,
+      }
+    };
   }, [nodes]);
 
   const generatedFiles = useMemo(() => generateAllCode(domainGraph), [domainGraph]);
@@ -266,7 +284,7 @@ export function BuilderCanvas() {
     [nodeIdCounter, setNodes]
   );
 
-  const onDragStart = (event: React.DragEvent, nodeType: string) => {
+  const onDragStart = (event: React.DragEvent<HTMLDivElement>, nodeType: string) => {
     event.dataTransfer.setData('application/reactflow', nodeType);
     event.dataTransfer.effectAllowed = 'move';
   };
@@ -288,16 +306,14 @@ export function BuilderCanvas() {
         <h3 className="font-semibold mb-3">🧩 Component Palette (Drag to Canvas)</h3>
         <div className="flex gap-3 flex-wrap">
           {PALETTE_ITEMS.map((item) => (
-            <motion.div
+            <div
               key={item.type}
-              className={`${item.color} border-2 rounded-lg px-4 py-2 cursor-move font-semibold text-sm`}
+              className={`${item.color} border-2 rounded-lg px-4 py-2 cursor-move font-semibold text-sm transition-transform hover:scale-105 active:scale-95`}
               draggable
               onDragStart={(e) => onDragStart(e, item.type)}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
             >
               {item.label}
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>
