@@ -163,31 +163,77 @@ using Domain.Entities;
 //
 // In Domain-Driven Design, Aggregates:
 // 1. Have a ROOT entity (the Ride in this case)
-// 2. Define a consistency boundary - all changes go through the root
+// 2. Define a consistency boundary - all changes go through the aggregate, NOT the root directly
 // 3. Enforce invariants across multiple entities
 // 4. Are the unit of persistence - you save/load the whole aggregate
 
 public class RideAggregate
 {
-  // AGGREGATE ROOT - The single entry point for all changes
-  // External code interacts with the aggregate through the root
-  // In Clean Architecture, this enforces the "tell, don't ask" principle
-  public Ride Root { get; }
+  // AGGREGATE ROOT - The entity inside the aggregate
+  // IMPORTANT: This is PRIVATE in proper DDD - external code should NOT access it directly
+  // All operations go through the aggregate's public methods
+  private readonly Ride _root;
+
+  // Public read-only access to the root's data for querying
+  public Guid Id => _root.Id;
+  public Guid PassengerId => _root.PassengerId;
+  public Guid? DriverId => _root.DriverId;
+  public RideStatus Status => _root.Status;
 
   // CONSTRUCTOR - Creates the aggregate with its root
   // An aggregate cannot exist without its root entity
-  public RideAggregate(Ride root) => Root = root ?? throw new ArgumentNullException(nameof(root));
+  public RideAggregate(Guid passengerId)
+  {
+    // The aggregate creates and owns the root
+    _root = new Ride(passengerId);
+  }
 
-  // INVARIANT ENFORCEMENT - This is the key responsibility of aggregates
-  // Invariants are business rules that must ALWAYS be true
-  // The aggregate guards these rules across its entire boundary
-  public void EnforceInvariants()
+  // DOMAIN METHODS - The ONLY way to change the aggregate from outside
+  // This is the key difference: external code calls the AGGREGATE, not the entity
+  public void AssignDriver(Guid driverId)
+  {
+    // GUARD CLAUSE - Check business rules before making changes
+    if (Status != RideStatus.Requested)
+      throw new InvalidOperationException(
+        $"Cannot assign driver to ride in {Status} status. Must be Requested."
+      );
+
+    // Make the change through the root entity
+    _root.AssignDriver(driverId);
+
+    // INVARIANT CHECK - Ensure all rules still hold after the change
+    EnforceInvariants();
+  }
+
+  public void Complete()
+  {
+    // GUARD CLAUSE #1: Must be in Accepted status
+    if (Status != RideStatus.Accepted)
+      throw new InvalidOperationException(
+        $"Cannot complete ride in {Status} status. Must be Accepted."
+      );
+
+    // GUARD CLAUSE #2: Must have a driver (AGGREGATE INVARIANT)
+    // This is the key: the aggregate enforces rules that span the boundary
+    if (DriverId == null)
+      throw new InvalidOperationException(
+        "Cannot complete ride without an assigned driver."
+      );
+
+    // Make the change
+    _root.Complete();
+
+    // Verify invariants still hold
+    EnforceInvariants();
+  }
+
+  // INVARIANT ENFORCEMENT - Business rules that must ALWAYS be true
+  // The aggregate is the guardian of these rules
+  private void EnforceInvariants()
   {
     // INVARIANT: "A ride cannot be completed without a driver"
     // This is a cross-cutting rule that involves multiple properties
-    // The aggregate ensures this rule is never violated
-
-    if (Root.Status == RideStatus.Completed && Root.DriverId == null)
+    if (Status == RideStatus.Completed && DriverId == null)
       throw new InvalidOperationException(
         "Aggregate invariant violated: Cannot complete a ride without an assigned driver"
       );
@@ -199,33 +245,29 @@ public class RideAggregate
     // All of these would be checked here
   }
 
-  // DOMAIN METHODS - Public API for changing the aggregate
-  // These methods ensure invariants are maintained after every operation
-  public void AssignDriver(Guid driverId)
+  // FACTORY METHOD - Alternative way to create from existing entity
+  // Used when loading from database
+  public static RideAggregate FromEntity(Ride ride)
   {
-    // Delegate to the root entity
-    Root.AssignDriver(driverId);
-
-    // After ANY change, verify all invariants still hold
-    // This is the aggregate's responsibility
-    EnforceInvariants();
+    return new RideAggregate(ride);
   }
 
-  public void Complete()
+  private RideAggregate(Ride ride)
   {
-    // Delegate to the root entity
-    Root.Complete();
-
-    // Verify invariants after completion
-    // If EnforceInvariants throws, the change is rejected
-    EnforceInvariants();
+    _root = ride ?? throw new ArgumentNullException(nameof(ride));
+    EnforceInvariants(); // Always verify on construction
   }
+
+  // ACCESS TO ROOT - Only for persistence layer
+  // This breaks encapsulation slightly, but needed for OR/M mapping
+  internal Ride GetRoot() => _root;
 }
 
 // WHY THIS MATTERS (Clean Architecture & DDD):
 //
-// 1. CONSISTENCY BOUNDARY: Changes to Ride always go through the aggregate
-//    You can't bypass it and modify Ride directly from outside
+// 1. CONSISTENCY BOUNDARY: Changes to Ride MUST go through the aggregate
+//    External code CANNOT bypass it and modify Ride directly
+//    This is enforced by making _root private
 //
 // 2. TRANSACTION BOUNDARY: When you save a RideAggregate to the database,
 //    you save ALL of it in one transaction
@@ -233,8 +275,8 @@ public class RideAggregate
 // 3. INVARIANT PROTECTION: Business rules that span multiple objects
 //    are enforced in one place, preventing invalid states
 //
-// 4. DEPENDENCY INVERSION: The domain (this aggregate) doesn't depend on
-//    infrastructure. The database adapts to the domain, not vice versa
+// 4. TELL, DON'T ASK: External code tells the aggregate what to do
+//    (AssignDriver, Complete), not asking for the root and manipulating it
 //
 // 5. TESTABILITY: You can test all business logic without a database,
 //    without a framework, without any external dependencies
@@ -243,7 +285,8 @@ public class RideAggregate
 // - Keep aggregates small (ideally just the root)
 // - Reference other aggregates by ID only, not by direct reference
 // - Use eventual consistency between aggregates
-// - Enforce invariants ONLY within the aggregate boundary`,
+// - Enforce invariants ONLY within the aggregate boundary
+// - External objects can only hold references to the Aggregate, not entities inside`,
   },
   {
     name: 'Request Ride Use Case',

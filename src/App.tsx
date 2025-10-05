@@ -1,10 +1,13 @@
 import { useEffect, useMemo } from 'react';
 import { Navbar, Hero, Section, CodePane } from './shared/components';
-import { GraphCanvas } from './features/canvas/GraphCanvas';
+import { BuilderCanvas } from './features/canvas/BuilderCanvas';
 import { CodePlayground } from './features/exercises/CodePlayground';
 import { ValueObjectSlides } from './features/animations/ValueObjectSlides';
-import { EntityAnimation } from './features/animations/EntityAnimation';
-import { AggregateAnimation } from './features/animations/AggregateAnimation';
+import { EntitySlides } from './features/animations/EntitySlides';
+import { AggregateSlides } from './features/animations/AggregateSlides';
+import { UseCaseSlides } from './features/animations/UseCaseSlides';
+import { DependencyRuleSlides } from './features/animations/DependencyRuleSlides';
+import { RepositorySlides } from './features/animations/RepositorySlides';
 import { useGraphStore } from './features/canvas/store';
 import { generateAllCode } from './features/codegen/emitter';
 import { starterGraph } from './shared/utils';
@@ -142,42 +145,7 @@ function App() {
         subtitle="The Dependency Rule: Source code dependencies point inward"
         className="bg-white"
       >
-        <div className="card">
-          <div className="text-center mb-8">
-            <div className="inline-block">
-              <div className="w-64 h-64 relative mx-auto">
-                {/* Concentric circles */}
-                <div className="absolute inset-0 rounded-full bg-brand-100 flex items-center justify-center">
-                  <div className="w-48 h-48 rounded-full bg-brand-200 flex items-center justify-center">
-                    <div className="w-32 h-32 rounded-full bg-brand-300 flex items-center justify-center">
-                      <div className="w-16 h-16 rounded-full bg-brand-500 flex items-center justify-center text-white text-xs font-bold">
-                        Domain
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Labels */}
-                <div className="absolute top-4 left-1/2 -translate-x-1/2 text-xs font-semibold">
-                  Infrastructure
-                </div>
-                <div className="absolute top-16 left-1/2 -translate-x-1/2 text-xs font-semibold">
-                  Application
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="text-center text-gray-700">
-            <p className="text-lg">
-              Dependencies flow <strong>inward</strong>. The inner circle knows nothing
-              about the outer circles.
-            </p>
-            <p className="mt-4 text-gray-600">
-              Domain logic is completely isolated from infrastructure concerns.
-            </p>
-          </div>
-        </div>
+        <DependencyRuleSlides />
       </Section>
 
       {/* Value Objects */}
@@ -196,20 +164,7 @@ function App() {
         subtitle="Identity over time"
         className="bg-white"
       >
-        <div className="space-y-6">
-          <div className="card">
-            <p className="text-gray-700 mb-4">
-              Entities have a distinct identity that runs through time and different
-              representations. You can change an entity's attributes, but it maintains
-              the same identity.
-            </p>
-            <div className="bg-gray-100 p-4 rounded-lg">
-              <strong>Examples:</strong> User, Order, Product, Ride
-            </div>
-          </div>
-
-          <EntityAnimation />
-        </div>
+        <EntitySlides />
       </Section>
 
       {/* Aggregates */}
@@ -218,74 +173,35 @@ function App() {
         title="Aggregates"
         subtitle="Consistency boundaries and invariants"
       >
-        <div className="space-y-6">
-          <div className="card">
-            <p className="text-gray-700 mb-4">
-              An Aggregate is a cluster of domain objects (entities and value objects)
-              that can be treated as a single unit. The aggregate root is the only entry
-              point for external access.
-            </p>
-            <div className="bg-gray-100 p-4 rounded-lg">
-              <strong>Key Rule:</strong> Transactions must not cross aggregate boundaries
-            </div>
-          </div>
-
-          <AggregateAnimation />
-        </div>
+        <AggregateSlides />
       </Section>
 
       {/* Use Cases */}
       <Section
         id="use-cases"
-        title="Use Cases & Repositories"
-        subtitle="Application logic and ports"
+        title="Use Cases"
+        subtitle="Application logic and orchestration"
         className="bg-white"
       >
-        <div className="grid md:grid-cols-2 gap-6">
-          <div className="card">
-            <h3 className="text-xl font-semibold mb-3">Use Cases</h3>
-            <p className="text-gray-700 mb-4">
-              Use Cases orchestrate the flow of data to and from entities. They contain
-              application-specific business rules.
-            </p>
-            <div className="bg-gray-100 p-3 rounded font-mono text-sm">
-              RequestRideUseCase
-              <br />
-              CancelRideUseCase
-            </div>
-          </div>
+        <UseCaseSlides />
+      </Section>
 
-          <div className="card">
-            <h3 className="text-xl font-semibold mb-3">Repositories (Ports)</h3>
-            <p className="text-gray-700 mb-4">
-              Repositories are interfaces (ports) that abstract data access. The domain
-              depends on the interface, not the implementation.
-            </p>
-            <div className="bg-gray-100 p-3 rounded font-mono text-sm">
-              IRideRepository
-              <br />
-              IUserRepository
-            </div>
-          </div>
-        </div>
+      {/* Repositories */}
+      <Section
+        id="repositories"
+        title="Repositories & Ports"
+        subtitle="Abstracting infrastructure with interfaces"
+      >
+        <RepositorySlides />
       </Section>
 
       {/* Builder */}
       <Section
         id="builder"
         title="Visual Domain Builder"
-        subtitle="Compose your domain model with drag-and-drop"
+        subtitle="Build your domain model with drag-and-drop"
       >
-        <div className="mb-6">
-          <GraphCanvas />
-        </div>
-
-        <div className="card">
-          <p className="text-gray-600 text-sm">
-            💡 <strong>Tip:</strong> This is a starter model. In a full implementation,
-            you could add nodes, connect them, and see live validation.
-          </p>
-        </div>
+        <BuilderCanvas />
       </Section>
 
       {/* Generated Code */}

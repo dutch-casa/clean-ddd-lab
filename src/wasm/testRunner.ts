@@ -175,7 +175,7 @@ function testRideEntity(code: string): TestReport {
   }
 
   // Test 4: Complete should check status is Accepted
-  const completeMethod = code.match(/public void Complete[\s\S]*?(?=}[\s]*$|public)/)?.[0] || '';
+  const completeMethod = code.match(/public void Complete[\s\S]*?\n\s*\}/)?.[0] || '';
   const hasCompleteStatusCheck =
     completeMethod.includes('Status') &&
     completeMethod.includes('Accepted');
